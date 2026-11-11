@@ -1,0 +1,18 @@
+# ---------------------------------------------------------------------------
+# Crypto Vault — crontab entries (install as the web user, e.g. `crontab -u www-data -e`)
+#
+# Laravel runs ALL scheduled work through a single schedule:run entry:
+#   deposits scanners (every minute per enabled chain), withdrawal polling,
+#   horizon:snapshot, vault:prune-logs, exchange treasury sync.
+# ---------------------------------------------------------------------------
+
+* * * * * cd /var/www/crypto-vault && php artisan schedule:run >> /dev/null 2>&1
+
+# Nightly backup (see deploy/backup.sh) — run as root in root's crontab instead:
+# 15 3 * * * /usr/local/bin/vault-backup >> /var/log/vault-backup.log 2>&1
+
+# ---------------------------------------------------------------------------
+# Why a single entry? Overlapping scheduler processes are prevented by
+# ->onOneServer() (requires a shared cache/lock store: Redis in production)
+# and ->withoutOverlapping() on every job in bootstrap/app.php.
+# ---------------------------------------------------------------------------
